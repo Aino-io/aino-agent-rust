@@ -64,10 +64,10 @@ use ainoio_agent;
 use std::time::SystemTime;
 
 // Load the configuration
-let config = ainoio_agent::AinoConfig::new().expect("Failed to load aino configuration");
+let config = ainoio_agent::AinoConfig::new()?;
 // Start the Aino agent
 // This must be called exactly once before any transactions are sent
-ainoio_agent::start(config);
+ainoio_agent::start(config)?;
 
 let timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap();
 

@@ -84,6 +84,7 @@ pub fn add_transaction(transaction: Transaction) -> Result<(), AinoError> {
 }
 
 /// Stops the [`Aino.io`](https://aino.io) agent. Adding any new [`Transaction`](struct.Transaction.html)s will result in an error.
+/// This function will wait until all pending [`Transaction`](struct.Transaction.html)s have been sent.
 pub fn stop() -> Result<(), AinoError> {
     let agent = AGENT.lock().unwrap();
     match agent.sender.send(Msg::Cancel) {

@@ -2,12 +2,12 @@ use ainoio_agent;
 use std::thread;
 use std::time::{Duration, SystemTime};
 
-fn main() {
+fn main() -> Result<(), ainoio_agent::AinoError> {
     // Read the configuration
-    let config = ainoio_agent::AinoConfig::new().expect("Failed to load aino configuration");
+    let config = ainoio_agent::AinoConfig::new()?;
 
     // Start the Aino.io agent, this must be done only once
-    ainoio_agent::start(config);
+    ainoio_agent::start(config)?;
 
     // Spawn two threads that start sending transactions to Aino.io
     // Rememeber to update the configuration with your actual API key
@@ -15,6 +15,8 @@ fn main() {
     let t2 = thread::spawn(|| sender());
     t.join().unwrap();
     t2.join().unwrap();
+
+    Ok(())
 }
 
 fn sender() {
