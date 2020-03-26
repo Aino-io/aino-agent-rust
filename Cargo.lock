@@ -11,7 +11,7 @@ dependencies = [
 
 [[package]]
 name = "ainoio-agent"
-version = "2.1.0"
+version = "3.0.0"
 dependencies = [
  "config",
  "futures 0.3.4",

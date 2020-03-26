@@ -14,6 +14,10 @@ enum Msg {
     Trx(Box<Transaction>),
 }
 
+enum ThreadMsg {
+    Finished,
+}
+
 #[derive(Deserialize, Debug)]
 struct BatchResponse {
     batch: String,
@@ -34,26 +38,36 @@ enum ListenResult {
 struct Agent {
     sender: mpsc::Sender<Msg>,
     receiver: Option<mpsc::Receiver<Msg>>,
+    thread_sender: Option<mpsc::Sender<ThreadMsg>>,
+    thread_receiver: mpsc::Receiver<ThreadMsg>,
 }
 
 lazy_static! {
     static ref AGENT: Mutex<Agent> = {
         let (sender, receiver) = mpsc::channel();
+        let (thread_sender, thread_receiver) = mpsc::channel();
         Mutex::new(Agent {
-            sender: sender,
+            sender,
             receiver: Some(receiver),
+            thread_sender: Some(thread_sender),
+            thread_receiver,
         })
     };
 }
 
 /// Starts the [`Aino.io`](https://aino.io) agent. Should only be called once at application startup.
-pub fn start(config: AinoConfig) {
+pub fn start(config: AinoConfig) -> Result<(), AinoError> {
     let mut agent = AGENT.lock().unwrap();
     let receiver = agent.receiver.take();
-    match receiver {
-        Some(receiver) => run(config, receiver),
-        None => (),
-    };
+    let sender = agent.thread_sender.take();
+    match (receiver, sender) {
+        (Some(receiver), Some(sender)) => {
+            run(config, receiver, sender);
+
+            Ok(())
+        }
+        _ => Err(AinoError::new("Failed to start Aino.io agent".to_string())),
+    }
 }
 
 /// Adds the [`Transaction`](struct.Transaction.html) to the queue to be sent later.
@@ -73,18 +87,36 @@ pub fn add_transaction(transaction: Transaction) -> Result<(), AinoError> {
 pub fn stop() -> Result<(), AinoError> {
     let agent = AGENT.lock().unwrap();
     match agent.sender.send(Msg::Cancel) {
-        Ok(_) => Ok(()),
+        Ok(_) => match agent.thread_receiver.recv() {
+            Ok(msg) => match msg {
+                ThreadMsg::Finished => {
+                    println!("Finished");
+                    Ok(())
+                }
+            },
+            Err(e) => Err(AinoError::new(format!("Aino error: {}", e))),
+        },
         Err(e) => Err(AinoError::new(format!("Aino error: {}", e))),
     }
 }
 
-fn run(config: AinoConfig, receiver: mpsc::Receiver<Msg>) {
+fn run(config: AinoConfig, receiver: mpsc::Receiver<Msg>, sender: mpsc::Sender<ThreadMsg>) {
     thread::spawn(move || {
         let mut buffer: VecDeque<Transaction> = VecDeque::new();
         let mut interval_start = Instant::now();
 
         loop {
             if let ListenResult::Shutdown = listen_messages(&receiver, &mut buffer) {
+                // Clear the buffer before shutting down
+                while buffer.len() > 0 {
+                    let batch = create_batch_request(&mut buffer);
+                    block_on(send_batch(&config, batch));
+                }
+
+                sender
+                    .send(ThreadMsg::Finished)
+                    .expect("Failed to send Finished message back to main thread.");
+
                 break;
             }
 
