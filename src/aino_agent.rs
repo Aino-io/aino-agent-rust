@@ -123,8 +123,6 @@ fn run(config: AinoConfig, receiver: mpsc::Receiver<Msg>, sender: mpsc::Sender<T
                 interval_start = Instant::now();
                 block_on(send_batch(&config, batch));
             }
-
-            thread::sleep(Duration::from_millis(10));
         }
     });
 }
