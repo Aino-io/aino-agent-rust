@@ -1,6 +1,6 @@
 [package]
 name = "ainoio-agent"
-version = "1.0.0"
+version = "2.0.0"
 authors = ["Olli Aalto <olli.aalto@unikie.com>"]
 edition = "2018"
 license = "Apache-2.0"
@@ -8,7 +8,7 @@ description = "Aino.io agent"
 repository = "https://github.com/Aino-io/aino-agent-rust"
 homepage = "https://aino.io"
 readme = "README.md"
-keywords = ["integrations"]
+keywords = ["integrations", "tracking", "monitoring"]
 
 [dependencies]
 serde = "1.0.105"

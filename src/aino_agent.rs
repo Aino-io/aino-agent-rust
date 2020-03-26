@@ -163,12 +163,12 @@ mod tests {
             .duration_since(SystemTime::UNIX_EPOCH)
             .unwrap();
         Transaction::new(
-            "from",
-            "to",
-            "operation",
+            "from".to_string(),
+            "to".to_string(),
+            "operation".to_string(),
             Status::Success,
             timestamp.as_millis(),
-            "flow_id",
+            "flow_id".to_string(),
         )
     }
 

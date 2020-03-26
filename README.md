@@ -72,14 +72,16 @@ ainoio_agent::start(config);
 let timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap();
 
 // Create transaction object
-let mut transaction = ainoio_agent::Transaction::new("SAP", "Card Management", "Payment", ainoio_agent::Status::Success, timestamp.as_millis(), "1249F41E55A1123FB");
-transaction.message = Some("Data transfer successful.");
-transaction.payload_type = Some("Product Update");
+let mut transaction = ainoio_agent::Transaction::new("SAP".to_string(),
+    "Card Management".to_string(), "Payment".to_string(), ainoio_agent::Status::Success,
+    timestamp.as_millis(), "1249F41E55A1123FB".to_string());
+transaction.message = Some("Data transfer successful.".to_string());
+transaction.payload_type = Some("Product Update".to_string());
 
-let metadata = ainoio_agent::TransactionMetadata::new("Card API", "https://somecardsystem.com");
+let metadata = ainoio_agent::TransactionMetadata::new("Card API".to_string(), "https://somecardsystem.com".to_string());
 transaction.add_metadata(metadata);
 
-let id = ainoio_agent::TransactionId::new("OrderId", vec!["123456", "xxasd"]);
+let id = ainoio_agent::TransactionId::new("OrderId".to_string(), vec!["123456".to_string(), "xxasd".to_string()]);
 transaction.add_id(id);
 
 // Add the transaction into the queue, it will be sent after `send_interval' has elapsed at the latests

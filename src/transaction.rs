@@ -7,10 +7,10 @@ use std::fmt;
 #[serde(rename_all = "camelCase")]
 pub struct Transaction {
     /// The name of originating application
-    pub from: &'static str,
+    pub from: String,
 
     /// The name of the target application
-    pub to: &'static str,
+    pub to: String,
 
     /// A [`Status`](enum.Status.html) flag indicating the whether the `Transaction` was successful or not.
     pub status: Status,
@@ -19,18 +19,18 @@ pub struct Transaction {
     pub timestamp: u128,
 
     /// The operation of the `Transaction`.
-    pub operation: &'static str,
+    pub operation: String,
 
     /// The ID for the whole logical flow if `Transaction`s.
-    pub flow_id: &'static str,
+    pub flow_id: String,
 
     /// The type of payload in the `Transaction` (optional)
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub payload_type: Option<&'static str>,
+    pub payload_type: Option<String>,
 
     /// A possible log message (optional)
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub message: Option<&'static str>,
+    pub message: Option<String>,
 
     /// All IDs related to this `Transaction` (optional)
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -46,10 +46,10 @@ pub struct Transaction {
 #[serde(rename_all = "camelCase")]
 pub struct TransactionId {
     /// The type of the ID.
-    pub id_type: &'static str,
+    pub id_type: String,
 
     /// The actual ID values for this type.
-    pub values: Vec<&'static str>,
+    pub values: Vec<String>,
 }
 
 /// A name/value pair for generic metadata.
@@ -57,21 +57,21 @@ pub struct TransactionId {
 #[serde(rename_all = "camelCase")]
 pub struct TransactionMetadata {
     /// The name of the metadata.
-    pub name: &'static str,
+    pub name: String,
 
     /// The value of the metadata.
-    pub value: &'static str,
+    pub value: String,
 }
 
 impl Transaction {
     /// Constructs a single `Transaction` with the mandatory values.
     pub fn new(
-        from: &'static str,
-        to: &'static str,
-        operation: &'static str,
+        from: String,
+        to: String,
+        operation: String,
         status: Status,
         timestamp: u128,
-        flow_id: &'static str,
+        flow_id: String,
     ) -> Self {
         Transaction {
             from,
@@ -110,14 +110,14 @@ impl Transaction {
 
 impl TransactionMetadata {
     /// Constructs a new [`TransactionMetadata`](struct.TransactionMetadata.html).
-    pub fn new(name: &'static str, value: &'static str) -> Self {
+    pub fn new(name: String, value: String) -> Self {
         TransactionMetadata { name, value }
     }
 }
 
-impl TransactionId {
+impl<'a> TransactionId {
     /// Constructs a new [`TransactionId`](struct.TransactionId.html).
-    pub fn new(id_type: &'static str, values: Vec<&'static str>) -> Self {
+    pub fn new(id_type: String, values: Vec<String>) -> Self {
         TransactionId { id_type, values }
     }
 }
@@ -160,16 +160,16 @@ mod tests {
             .duration_since(SystemTime::UNIX_EPOCH)
             .unwrap();
         let mut trx = Transaction::new(
-            "from",
-            "to",
-            "operation",
+            "from".to_string(),
+            "to".to_string(),
+            "operation".to_string(),
             Status::Success,
             timestamp.as_millis(),
-            "flow_id",
+            "flow_id".to_string(),
         );
         assert_eq!(trx.metadata.is_none(), true);
 
-        let metadata = TransactionMetadata::new("name", "value");
+        let metadata = TransactionMetadata::new("name".to_string(), "value".to_string());
         trx.add_metadata(metadata);
         assert_eq!(trx.metadata.is_some(), true);
     }
@@ -180,21 +180,21 @@ mod tests {
             .duration_since(SystemTime::UNIX_EPOCH)
             .unwrap();
         let mut trx = Transaction::new(
-            "from",
-            "to",
-            "operation",
+            "from".to_string(),
+            "to".to_string(),
+            "operation".to_string(),
             Status::Success,
             timestamp.as_millis(),
-            "flow_id",
+            "flow_id".to_string(),
         );
         assert_eq!(trx.ids.is_none(), true);
 
-        let id = TransactionId::new("id_type", vec!["value"]);
+        let id = TransactionId::new("id_type".to_string(), vec!["value".to_string()]);
         trx.add_id(id);
         assert_eq!(trx.ids.is_some(), true);
         if let Some(ids) = &trx.ids {
-            assert_eq!(ids[0].id_type, "id_type");
-            assert_eq!(ids[0].values[0], "value");
+            assert_eq!(ids[0].id_type, "id_type".to_string());
+            assert_eq!(ids[0].values[0], "value".to_string());
         }
     }
 }

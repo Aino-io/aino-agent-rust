@@ -2,14 +2,6 @@ use ainoio_agent;
 use std::thread;
 use std::time::{Duration, SystemTime};
 
-const FROM_APPLICATION: &str = "FromApplicationName";
-const TO_APPLICATION: &str = "ToApplicationName";
-const OPERATION: &str = "OperationName";
-const FLOW_ID: &str = "FlowId";
-const ID_TYPE: &str = "IdType";
-const ID1: &str = "ID1";
-const ID2: &str = "ID2";
-
 fn main() {
     // Read the configuration
     let config = ainoio_agent::AinoConfig::new().expect("Failed to load aino configuration");
@@ -26,22 +18,30 @@ fn main() {
 }
 
 fn sender() {
+    let from_application: &str = "FromApplicationName";
+    let to_application: &str = "ToApplicationName";
+    let operation: &str = "OperationName";
+    let flow_id: &str = "FlowId";
+    let id_type: &str = "IdType";
+    let id1: &str = "ID1";
+    let id2: &str = "ID2";
+
     loop {
         match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
             Ok(n) => {
                 // Construct the transaction
                 let mut trx = ainoio_agent::Transaction::new(
-                    FROM_APPLICATION,
-                    TO_APPLICATION,
-                    OPERATION,
+                    from_application.to_string(),
+                    to_application.to_string(),
+                    operation.to_string(),
                     ainoio_agent::Status::Success,
                     n.as_millis(),
-                    FLOW_ID,
+                    flow_id.to_string(),
                 );
 
                 // Add some more data
-                let id_values: Vec<&'static str> = vec![ID1, ID2];
-                let id = ainoio_agent::TransactionId::new(ID_TYPE, id_values);
+                let id_values: Vec<String> = vec![id1.to_string(), id2.to_string()];
+                let id = ainoio_agent::TransactionId::new(id_type.to_string(), id_values);
                 trx.add_id(id);
 
                 // Add the transaction to the queue to be sent
