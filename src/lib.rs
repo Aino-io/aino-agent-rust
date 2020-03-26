@@ -57,6 +57,7 @@ pub use aino_config::*;
 pub use status::*;
 pub use transaction::*;
 
+use std::error::Error;
 use std::fmt;
 
 /// Error object for [`Aino.io`](https://aino.io) agent
@@ -77,3 +78,5 @@ impl AinoError {
         AinoError { msg }
     }
 }
+
+impl Error for AinoError {}
