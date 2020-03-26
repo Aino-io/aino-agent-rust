@@ -90,10 +90,7 @@ pub fn stop() -> Result<(), AinoError> {
     match agent.sender.send(Msg::Cancel) {
         Ok(_) => match agent.thread_receiver.recv() {
             Ok(msg) => match msg {
-                ThreadMsg::Finished => {
-                    println!("Finished");
-                    Ok(())
-                }
+                ThreadMsg::Finished => Ok(()),
             },
             Err(e) => Err(AinoError::new(format!("Aino error: {}", e))),
         },
