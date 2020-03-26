@@ -6,7 +6,7 @@ use std::collections::VecDeque;
 use std::sync::mpsc;
 use std::sync::Mutex;
 use std::thread;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 use surf;
 
 enum Msg {
@@ -176,7 +176,7 @@ mod tests {
     use super::*;
     use crate::Status;
     use std::iter::repeat_with;
-    use std::time::SystemTime;
+    use std::time::{Duration, SystemTime};
 
     fn create_config(send_interval: u32) -> AinoConfig {
         AinoConfig {
