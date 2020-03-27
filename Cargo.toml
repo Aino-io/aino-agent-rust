@@ -1,6 +1,6 @@
 [package]
 name = "ainoio-agent"
-version = "3.0.1"
+version = "3.1.0"
 authors = ["Olli Aalto <olli.aalto@unikie.com>"]
 edition = "2018"
 license = "Apache-2.0"
@@ -20,3 +20,4 @@ strum = "0.18.0"
 strum_macros = "0.18.0"
 config = "0.10.1"
 lazy_static = "1.4.0"
+tokio = { version = "0.2", features = ["rt-threaded", "rt-core"] }

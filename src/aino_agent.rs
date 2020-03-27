@@ -1,6 +1,6 @@
 use crate::aino_config::AinoConfig;
 use crate::{AinoError, Transaction};
-use futures::executor::block_on;
+use futures::future::join_all;
 use std::cmp::min;
 use std::collections::VecDeque;
 use std::sync::mpsc;
@@ -8,6 +8,8 @@ use std::sync::Mutex;
 use std::thread;
 use std::time::Instant;
 use surf;
+use tokio::runtime::Runtime;
+use tokio::task::JoinHandle;
 
 enum Msg {
     Cancel,
@@ -61,11 +63,10 @@ pub fn start(config: AinoConfig) -> Result<(), AinoError> {
     let receiver = agent.receiver.take();
     let sender = agent.thread_sender.take();
     match (receiver, sender) {
-        (Some(receiver), Some(sender)) => {
-            run(config, receiver, sender);
-
-            Ok(())
-        }
+        (Some(receiver), Some(sender)) => match run(config, receiver, sender) {
+            Ok(()) => Ok(()),
+            Err(err) => Err(AinoError::new(format!("Aino.io error: {}", err))),
+        },
         _ => Err(AinoError::new("Failed to start Aino.io agent".to_string())),
     }
 }
@@ -98,18 +99,20 @@ pub fn stop() -> Result<(), AinoError> {
     }
 }
 
-fn run(config: AinoConfig, receiver: mpsc::Receiver<Msg>, sender: mpsc::Sender<ThreadMsg>) {
+fn run(
+    config: AinoConfig,
+    receiver: mpsc::Receiver<Msg>,
+    sender: mpsc::Sender<ThreadMsg>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut rt = Runtime::new()?;
+
     thread::spawn(move || {
         let mut buffer: VecDeque<Transaction> = VecDeque::new();
         let mut interval_start = Instant::now();
 
         loop {
             if let ListenResult::Shutdown = listen_messages(&receiver, &mut buffer) {
-                // Clear the buffer before shutting down
-                while buffer.len() > 0 {
-                    let batch = create_batch_request(&mut buffer);
-                    block_on(send_batch(&config, batch));
-                }
+                clear_buffer(Vec::from(buffer), &mut rt, &config);
 
                 sender
                     .send(ThreadMsg::Finished)
@@ -121,10 +124,28 @@ fn run(config: AinoConfig, receiver: mpsc::Receiver<Msg>, sender: mpsc::Sender<T
             if can_send_batch(&interval_start, &config, buffer.len()) {
                 let batch = create_batch_request(&mut buffer);
                 interval_start = Instant::now();
-                block_on(send_batch(&config, batch));
+                rt.spawn(send_batch(config.clone(), batch));
             }
         }
     });
+    Ok(())
+}
+
+fn clear_buffer(buffer: Vec<Transaction>, rt: &mut Runtime, config: &AinoConfig) {
+    // Create a list of tasks that will send the rest of the batches in the buffer
+    let handles: Vec<JoinHandle<()>> = buffer
+        .as_slice()
+        .chunks(MAX_BATCH_SIZE)
+        .map(|b| {
+            let batch = BatchRequest {
+                transactions: b.to_vec(),
+            };
+            rt.spawn(send_batch(config.clone(), batch))
+        })
+        .collect();
+
+    // Wait for all to be sent
+    rt.block_on(async { join_all(handles).await });
 }
 
 fn can_send_batch(interval_start: &Instant, config: &AinoConfig, buffer_len: usize) -> bool {
@@ -159,7 +180,7 @@ fn create_batch_request(buffer: &mut VecDeque<Transaction>) -> BatchRequest {
     }
 }
 
-async fn send_batch(config: &AinoConfig, batch: BatchRequest) {
+async fn send_batch(config: AinoConfig, batch: BatchRequest) {
     if let Ok(req) = surf::post(&config.url)
         .set_header("Authorization", format!("apikey {}", &config.api_key))
         .body_json(&batch)
