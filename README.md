@@ -1,7 +1,5 @@
 # Rust Agent for Aino.io
 
-[![Aino-io](https://circleci.com/gh/Aino-io/aino-agent-rust.svg?style=shield&circle-token=560dca0ca6f4535ca07361caaa11809bdbdf85e8)](https://app.circleci.com/pipelines/github/Aino-io/aino-agent-rust)
-
 Rust implementation of Aino.io logging agent.
 
 ## What is [Aino.io](http://aino.io) and what does this Agent have to do with it?
