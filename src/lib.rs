@@ -22,9 +22,9 @@
 //! let timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap();
 //!
 //! // Create transaction object
-//! let mut transaction = ainoio_agent::Transaction::new("SAP".to_string(),
-//!     "Card Management".to_string(), "Payment".to_string(), ainoio_agent::Status::Success,
-//!     timestamp.as_millis(), "flow id".to_string());
+//! let mut transaction = ainoio_agent::Transaction::new("From Application".to_string(),
+//!     "To Application".to_string(), "Operation".to_string(), ainoio_agent::Status::Success,
+//!     timestamp.as_millis(), "flow id".to_string(), "Integration Segment".to_string());
 //! transaction.message = Some("Data transfer successful.".to_string());
 //! transaction.payload_type = Some("Product Update".to_string());
 //!
@@ -39,9 +39,6 @@
 //!
 //! # Ok::<(), ainoio_agent::AinoError>(())
 //! ```
-
-#![warn(missing_docs)]
-#![warn(missing_doc_code_examples)]
 
 #[macro_use]
 extern crate serde_derive;

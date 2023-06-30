@@ -1,5 +1,5 @@
 use crate::AinoError;
-use config::{Config, Environment, File};
+use config::{Config, Environment, File, FileFormat};
 use std::env;
 
 /// The configuration needed for the [`Aino.io`](https://aino.io) agent.
@@ -20,24 +20,18 @@ pub struct AinoConfig {
 impl AinoConfig {
     /// Reads in the configuration files and environment variables and constructs the configuration object.
     pub fn new() -> Result<Self, AinoError> {
-        let mut config = Config::new();
         let env = env::var("RUN_MODE").unwrap_or("development".into());
 
-        config
-            .merge(File::with_name("config/default"))
-            .map_err(|err| AinoError::new(err.to_string()))?;
-        config
-            .merge(File::with_name(&format!("config/{}", env)).required(false))
-            .map_err(|err| AinoError::new(err.to_string()))?;
-        config
-            .merge(File::with_name("config/local").required(false))
-            .map_err(|err| AinoError::new(err.to_string()))?;
-        config
-            .merge(Environment::with_prefix("aino"))
+        let config = Config::builder()
+            .add_source(File::new("config/default", FileFormat::Toml))
+            .add_source(File::new(&format!("config/{env}"), FileFormat::Toml).required(false))
+            .add_source(File::new("config/local", FileFormat::Toml).required(false))
+            .add_source(Environment::with_prefix("aino"))
+            .build()
             .map_err(|err| AinoError::new(err.to_string()))?;
 
         config
-            .try_into()
+            .try_deserialize()
             .map_err(|err| AinoError::new(err.to_string()))
     }
 }

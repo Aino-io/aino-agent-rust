@@ -7,7 +7,6 @@ use std::sync::mpsc;
 use std::sync::Mutex;
 use std::thread;
 use std::time::Instant;
-use surf;
 use tokio::runtime::Runtime;
 use tokio::task::JoinHandle;
 
@@ -63,10 +62,8 @@ pub fn start(config: AinoConfig) -> Result<(), AinoError> {
     let receiver = agent.receiver.take();
     let sender = agent.thread_sender.take();
     match (receiver, sender) {
-        (Some(receiver), Some(sender)) => match run(config, receiver, sender) {
-            Ok(()) => Ok(()),
-            Err(err) => Err(AinoError::new(format!("Aino.io error: {}", err))),
-        },
+        (Some(receiver), Some(sender)) => run(config, receiver, sender)
+            .map_err(|err| AinoError::new(format!("Aino.io error: {}", err))),
         _ => Err(AinoError::new("Failed to start Aino.io agent".to_string())),
     }
 }
@@ -78,10 +75,11 @@ pub fn add_transaction(transaction: Transaction) -> Result<(), AinoError> {
         agent.sender.clone()
     };
 
-    match sender.send(Msg::Trx(Box::new(transaction))) {
-        Ok(_) => Ok(()),
-        Err(e) => Err(AinoError::new(format!("Aino error: {}", e))),
-    }
+    sender
+        .send(Msg::Trx(Box::new(transaction)))
+        .map_err(|e| AinoError::new(format!("Aino error: {}", e)))?;
+
+    Ok(())
 }
 
 /// Stops the [`Aino.io`](https://aino.io) agent. Adding any new [`Transaction`](struct.Transaction.html)s will result in an error.
@@ -182,7 +180,7 @@ fn create_batch_request(buffer: &mut VecDeque<Transaction>) -> BatchRequest {
 
 async fn send_batch(config: AinoConfig, batch: BatchRequest) {
     if let Ok(req) = surf::post(&config.url)
-        .set_header("Authorization", format!("apikey {}", &config.api_key))
+        .header("Authorization", format!("apikey {}", &config.api_key))
         .body_json(&batch)
     {
         // TODO: Implement resending if sending fails
@@ -218,6 +216,7 @@ mod tests {
             Status::Success,
             timestamp.as_millis(),
             "flow_id".to_string(),
+            "integration_segment".to_string(),
         )
     }
 

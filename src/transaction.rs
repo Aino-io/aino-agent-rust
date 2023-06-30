@@ -1,5 +1,4 @@
 use crate::status::Status;
-use serde_json;
 use std::fmt;
 
 /// A log entry for a single `Transaction` between two applications.
@@ -20,6 +19,9 @@ pub struct Transaction {
 
     /// The operation of the `Transaction`.
     pub operation: String,
+
+    /// The integration segment of the `Transaction`.
+    pub integration_segment: String,
 
     /// The ID for the whole logical flow if `Transaction`s.
     pub flow_id: String,
@@ -72,6 +74,7 @@ impl Transaction {
         status: Status,
         timestamp: u128,
         flow_id: String,
+        integration_segment: String,
     ) -> Self {
         Transaction {
             from,
@@ -80,6 +83,7 @@ impl Transaction {
             timestamp,
             operation,
             flow_id,
+            integration_segment,
             payload_type: None,
             message: None,
             ids: None,
@@ -115,7 +119,7 @@ impl TransactionMetadata {
     }
 }
 
-impl<'a> TransactionId {
+impl TransactionId {
     /// Constructs a new [`TransactionId`](struct.TransactionId.html).
     pub fn new(id_type: String, values: Vec<String>) -> Self {
         TransactionId { id_type, values }
@@ -166,6 +170,7 @@ mod tests {
             Status::Success,
             timestamp.as_millis(),
             "flow_id".to_string(),
+            "integration_segment".to_string(),
         );
         assert_eq!(trx.metadata.is_none(), true);
 
@@ -186,6 +191,7 @@ mod tests {
             Status::Success,
             timestamp.as_millis(),
             "flow_id".to_string(),
+            "integration_segment".to_string(),
         );
         assert_eq!(trx.ids.is_none(), true);
 

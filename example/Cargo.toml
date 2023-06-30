@@ -1,8 +1,8 @@
 [package]
 name = "ainoio-example"
-version = "1.0.0"
+version = "1.1.0"
 authors = ["Olli Aalto <olli.aalto@unikie.com>"]
-edition = "2018"
+edition = "2021"
 license = "Apache-2.0"
 description = "Example for Aino.io agent"
 repository = "https://github.com/Aino-io/aino-agent-rust/example"

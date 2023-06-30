@@ -10,7 +10,7 @@ fn main() -> Result<(), ainoio_agent::AinoError> {
     ainoio_agent::start(config)?;
 
     // Spawn two threads that start sending transactions to Aino.io
-    // Rememeber to update the configuration with your actual API key
+    // Remember to update the configuration with your actual API key
     let t = thread::spawn(|| sender());
     let t2 = thread::spawn(|| sender());
     t.join().unwrap();
@@ -23,6 +23,7 @@ fn sender() {
     let from_application: &str = "FromApplicationName";
     let to_application: &str = "ToApplicationName";
     let operation: &str = "OperationName";
+    let integration_segment: &str = "IntegrationSegmentName";
     let flow_id: &str = "FlowId";
     let id_type: &str = "IdType";
     let id1: &str = "ID1";
@@ -39,6 +40,7 @@ fn sender() {
                     ainoio_agent::Status::Success,
                     n.as_millis(),
                     flow_id.to_string(),
+                    integration_segment.to_string(),
                 );
 
                 // Add some more data

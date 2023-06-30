@@ -2,7 +2,7 @@
 name = "ainoio-agent"
 version = "3.1.0"
 authors = ["Olli Aalto <olli.aalto@unikie.com>"]
-edition = "2018"
+edition = "2021"
 license = "Apache-2.0"
 description = "Aino.io agent"
 repository = "https://github.com/Aino-io/aino-agent-rust"
@@ -11,13 +11,13 @@ readme = "README.md"
 keywords = ["integrations", "tracking", "monitoring"]
 
 [dependencies]
-serde = "1.0.105"
-serde_derive = "1.0.105"
-serde_json = "1.0.48"
-surf = "1.0.3"
-futures = "0.3.4"
-strum = "0.18.0"
-strum_macros = "0.18.0"
-config = "0.10.1"
+serde = "1.0.163"
+serde_derive = "1.0.163"
+serde_json = "1.0.96"
+surf = "2.3.2"
+futures = "0.3.28"
+strum = "0.24.1"
+strum_macros = "0.24.3"
+config = "0.13.3"
 lazy_static = "1.4.0"
-tokio = { version = "0.2", features = ["rt-threaded", "rt-core"] }
+tokio = { version = "1.29.1", features = ["rt", "rt-multi-thread"] }
